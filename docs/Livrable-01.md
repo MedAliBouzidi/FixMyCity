@@ -16,7 +16,7 @@
 
 -   **Domaine métier et problème traité :**
     
-    FixMyCity est une plateforme citoyenne et municipale permettant aux utilisateurs de signaler des anomalies dans l'espace public (nids-de-poule, éclairage public défaillant, dépôts sauvages, voirie abîmée) avec géolocalisation et photos, et aux services municipaux d'organiser, prioriser et résoudre ces incidents.
+    FixMyCity est une solution de gestion territoriale des anomalies urbaines (chaussée dégradée, éclairage défaillant, dépôts sauvages). Elle orchestre un circuit de validation complet : les citoyens signalent les incidents, les administrateurs centralisent et mandatent des agents de terrain pour vérifier la véracité des faits isolés, les agents valident et priorisent l'anomalie, puis les techniciens procèdent à la réparation.
     
 -   **Application servant de charge de travail :**
     
@@ -24,15 +24,13 @@
     
 -   **Composants applicatifs et rôle de chacun :**
     
-    1.  _Frontend Web (Next.js) :_ Interface responsive pour la soumission citoyenne de signalements avec formulaire photo et tableau de bord de suivi pour les agents de la mairie.
+    1.  _Frontend Web (Next.js) :_ Interface responsive offrant trois vues dédiées : le portail citoyen (création et consultation de ses signalements), le centre de supervision administrateur (revue, déclenchement d'inspections, assignation des techniciens), et l'espace mobile des agents/techniciens (validation terrain, changement de statut, rapport de clôture).
         
-    2.  _API Backend (NestJS) :_ Gestion métier, validation des données, upload/génération d'URLs pré-signées S3, et déclenchement des notifications.
+    2.  _API Backend (NestJS) :_ Moteur d'orchestration gérant l'authentification basée sur les rôles (RBAC), les règles de seuil (alerte automatique vers la mairie dès 10 signalements identiques), le calcul des priorités et l'émission des métriques de santé.
         
-    3.  _Base de données (RDS MySQL) :_ Persistance relationnelle des utilisateurs, signalements, catégories, statuts, adresses et métadonnées des photos.
+    3.  _Base de données (RDS MySQL) :_ Base de données managée hébergée en sous-réseau privé. Elle stocke les comptes utilisateurs, le registre des incidents, le journal d'audit des statuts et les métadonnées des photos.
         
-    4.  _Stockage Objets (S3) :_ Stockage sécurisé des photos de signalement en accès privé strict.
-        
-    5.  _Composants bonus (§4.2) :_ SQS + Lambda pour le redimensionnement asynchrone des photos (thumbnails) et SNS pour l'envoi d'alertes automatiques à la mairie en cas de concentration anormale d'incidents (e.g >10 par rue).
+    4.  _Stockage Objets (S3) :_ Stockage sécurisé des photos de signalement en accès privé strict, ainsi qu'à l'export des sauvegardes de la base.
         
 
 ### Objectifs non fonctionnels auto-imposés
@@ -49,11 +47,15 @@
 
 -   **Services obligatoires mobilisés (§4.1) :**
     
-    VPC, Subnets multi-AZ (publics et privés), Route Tables, IGW, Security Groups, EC2, EBS, ALB, Auto Scaling Group, Launch Template, RDS MySQL, S3, CloudWatch Logs/Metrics/Alarmes.
+    - Réseau et sécurité : VPC, 2 sous-réseaux publics, 2 sous-réseaux privés applicatifs, 2 sous-réseaux privés base de données, Passerelle Internet (IGW), Tables de routage explicites, Security Groups stricts.
+    - Calcul et élasticité : Application Load Balancer (ALB), Auto Scaling Group (min 2 instances, max 4), Launch Template, instances EC2 t3.micro avec volumes EBS gp3.
+    - Données et fichiers : RDS MySQL, compartiment S3 privé.
+    - Observabilité : CloudWatch Logs (centralisation des logs applicatifs), CloudWatch Dashboard, et 2 alarmes actives (taux d'erreurs 5xx et saturation CPU).   
     
 -   **Services optionnels mobilisés (§4.2) :**
     
-    Amazon SNS (alertes par e-mail/SMS pour les signalements critiques ou les pannes), Amazon SQS + AWS Lambda (traitement et génération de miniatures des photos d'incidents).
+    - Amazon SNS: Utilisé pour router les notifications critiques (plus de 10 signalements sur la même voie, ou déclenchement d'alarmes d'infrastructure) vers les e-mails de l'équipe et de l'administrateur.
+    - SDK Python (Boto3) : Script d'audit de conformité vérifiant la présence des étiquettes obligatoires du groupe (Project=FixMyCity, Env=Dev) et script d'aide au nettoyage de fin de séance.
     
 -   **Solution d'accès sortant envisagée (§5.3) :**
     
