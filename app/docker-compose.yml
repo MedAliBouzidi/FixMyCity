@@ -1,0 +1,41 @@
+# PROD stack (EC2): frontend + backend only. The database is RDS.
+services:
+  backend:
+    build: ./backend
+    image: aws-demo-backend:latest
+    restart: unless-stopped
+    ports:
+      - "3001:3001"        # ALB target group -> /api/*
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSL: ${DB_SSL:-false}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build: ./frontend
+    image: aws-demo-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"        # ALB target group -> default (/)
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      APP_ENV: ${APP_ENV:-production}
+      # runtime variable: frontend container talks to backend over the compose network
+      BACKEND_URL: http://backend:3001
+    depends_on:
+      backend:
+        condition: service_healthy
