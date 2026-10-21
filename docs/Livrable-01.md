@@ -16,8 +16,7 @@
 
 -   **Domaine métier et problème traité :**
     
-    FixMyCity est une solution de gestion territoriale des anomalies urbaines (chaussée dégradée, éclairage défaillant, dépôts sauvages). Elle orchestre un circuit de validation complet : les citoyens signalent les incidents, les administrateurs centralisent et mandatent des agents de terrain pour vérifier la véracité des faits isolés, les agents valident et priorisent l'anomalie, puis les techniciens procèdent à la réparation.
-    
+    FixMyCity est une solution de gestion territoriale des anomalies urbaines (chaussée dégradée, éclairage défaillant, dépôts sauvages). Elle orchestre un circuit de validation complet : les citoyens signalent les incidents, les administrateurs centralisent et mandatent des agents de terrain pour vérifier la véracité des faits isolés, les agents valident et priorisent l'anomalie, puis les techniciens procèdent à la réparation.    
 -   **Application servant de charge de travail :**
     
     Application web multi-tiers développée en interne (Next.js, NestJS, MySQL), conteneurisée et totalement sans état (stateless).
