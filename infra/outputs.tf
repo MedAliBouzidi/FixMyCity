@@ -42,3 +42,31 @@ output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
   value       = module.ecs.ecs_cluster_name
 }
+
+output "vpc_id" {
+  value = module.networking.vpc_id
+}
+
+output "public_subnet_ids" {
+  value = module.networking.public_subnet_ids
+}
+
+output "app_private_subnet_ids" {
+  value = module.networking.app_private_subnet_ids
+}
+
+output "db_private_subnet_ids" {
+  value = module.networking.db_private_subnet_ids
+}
+
+output "alb_sg_id" {
+  value = module.security.alb_sg_id
+}
+
+output "ecs_instances_sg_id" {
+  value = module.security.ecs_instances_sg_id
+}
+
+output "database_sg_id" {
+  value = module.security.database_sg_id
+}
