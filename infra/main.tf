@@ -109,3 +109,4 @@ module "ecs" {
   app_events_topic_arn         = module.monitoring.app_events_topic_arn
   alb_listener_rule_dependency = module.alb.backend_listener_rule_arn
 }
+
