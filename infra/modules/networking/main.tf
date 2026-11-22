@@ -1,4 +1,4 @@
-# 1. VPC
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -9,7 +9,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-# 2. Public Subnets
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -32,7 +31,6 @@ resource "aws_subnet" "public_b" {
   }
 }
 
-# 3. App Private Subnets
 resource "aws_subnet" "app_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.11.0/24"
@@ -53,7 +51,6 @@ resource "aws_subnet" "app_b" {
   }
 }
 
-# 4. DB Private Subnets
 resource "aws_subnet" "db_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.21.0/24"
@@ -74,7 +71,6 @@ resource "aws_subnet" "db_b" {
   }
 }
 
-# 5. Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
@@ -83,7 +79,6 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# 6. Public Route Table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -92,14 +87,12 @@ resource "aws_route_table" "public" {
   }
 }
 
-# Public traffic -> Internet Gateway
 resource "aws_route" "public_internet" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw.id
 }
 
-# Associate both public subnets
 resource "aws_route_table_association" "public_a" {
   subnet_id      = aws_subnet.public_a.id
   route_table_id = aws_route_table.public.id
@@ -110,7 +103,6 @@ resource "aws_route_table_association" "public_b" {
   route_table_id = aws_route_table.public.id
 }
 
-# 7. Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
   domain = "vpc"
 
@@ -119,7 +111,6 @@ resource "aws_eip" "nat" {
   }
 }
 
-# 8. NAT Gateway (in Public Subnet A)
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public_a.id
@@ -131,7 +122,6 @@ resource "aws_nat_gateway" "nat" {
   depends_on = [aws_internet_gateway.igw]
 }
 
-# 9. App Private Route Table
 resource "aws_route_table" "app_private" {
   vpc_id = aws_vpc.main.id
 
@@ -156,7 +146,6 @@ resource "aws_route_table_association" "app_b" {
   route_table_id = aws_route_table.app_private.id
 }
 
-# 10. DB Private Route Table
 resource "aws_route_table" "db_private" {
   vpc_id = aws_vpc.main.id
 
@@ -181,7 +170,6 @@ resource "aws_route_table_association" "db_b" {
   route_table_id = aws_route_table.db_private.id
 }
 
-# 11. S3 Gateway Endpoint (FREE)
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
